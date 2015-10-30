@@ -50,7 +50,6 @@ public class MainActivity extends AppCompatActivity {
 
     private int count = 0;
 
-
     //The callback manager for the facebook login button
     CallbackManager facebookCallbackManager;
 
@@ -63,7 +62,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
 
         //initialising the facebook sdk and generating an access token.
         // Add code to print out the key hash
