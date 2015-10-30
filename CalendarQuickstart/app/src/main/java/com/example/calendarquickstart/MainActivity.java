@@ -276,11 +276,16 @@ public class MainActivity extends Activity {
                 minTime = startLunchTime1;
             }
 
+            Date endLunchTime = new Date();
+            endLunchTime.setHours(23); endLunchTime.setMinutes(59); endLunchTime.setSeconds(59);
+            DateTime endLunchTime1 = new DateTime(endLunchTime);
+
             List<String> eventStrings = new ArrayList<String>();
 
             Events events = mService.events().list("primary")
                     .setMaxResults(10)
                     .setTimeMin(minTime)
+                    .setTimeMax(endLunchTime1)
                     .setOrderBy("startTime")
                     .setSingleEvents(true)
                     .execute();
