@@ -6,12 +6,15 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +27,8 @@ public class MainActivity extends AppCompatActivity {
 
     private ArrayList<ListItem> itemList;
 
+    private int count = 0;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -35,21 +40,37 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(layoutManager);
 
         itemList = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
-            ListItem item = new ListItem();
-            item.time = "TIME " + i;
-            item.eventList = new ArrayList<>();
-            for (int j = 0; j < 2; j++) {
-                EventCard event = new EventCard();
-                event.title = "RESTAURANT " + j;
-                event.distance = "DIST " + j;
-                item.eventList.add(event);
-            }
-            itemList.add(item);
-        }
+        for (int i = 12; i < 15; i++) {
+            final ListItem item = new ListItem();
+            item.time = i + ":00";
 
-        adapter = new RecyclerViewAdapter(this, itemList);
-        recyclerView.setAdapter(adapter);
+            String tempAddress = "52 Kersland Street, Glasgow, G12 8BT";
+            LatLng latLng = EventDownloader.getLocationFromAddress(this, tempAddress);
+            item.lat = latLng.latitude;
+            item.lng = latLng.longitude;
+
+            new EventDownloader(this, tempAddress, 1000) {
+                @Override
+                public void onLoadComplete(ArrayList<MapEntity> entities) {
+                    item.eventList = new ArrayList<>();
+                    for (MapEntity entity : entities) {
+                        EventCard event = new EventCard();
+                        event.title = entity.name;
+                        event.distance = entity.time;
+                        event.lat = entity.latLng.latitude;
+                        event.lng = entity.latLng.longitude;
+                        item.eventList.add(event);
+                    }
+                    itemList.add(item);
+
+                    count++;
+                    if (count == 3) {
+                        adapter = new RecyclerViewAdapter(MainActivity.this, itemList);
+                        recyclerView.setAdapter(adapter);
+                    }
+                }
+            };
+        }
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
@@ -88,11 +109,11 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onBindViewHolder(ViewHolder viewHolder, int position) {
-            ListItem item = items.get(position);
+            final ListItem item = items.get(position);
             viewHolder.time.setText(item.time);
 
             viewHolder.llayout.removeAllViews();
-            for (EventCard event : item.eventList) {
+            for (final EventCard event : item.eventList) {
                 LinearLayout itemRow = (LinearLayout) LayoutInflater.from(context)
                         .inflate(R.layout.event_cardview, viewHolder.llayout, false);
 
@@ -106,6 +127,10 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onClick(View view) {
                         Intent intent = new Intent(MainActivity.this, MapsActivity.class);
+                        intent.putExtra(MapsActivity.ORIGIN_KEY_LAT, item.lat);
+                        intent.putExtra(MapsActivity.ORIGIN_KEY_LNG, item.lng);
+                        intent.putExtra(MapsActivity.DEST_KEY_LAT, event.lat);
+                        intent.putExtra(MapsActivity.DEST_KEY_LNG, event.lng);
                         startActivity(intent);
                     }
                 });

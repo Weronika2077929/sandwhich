@@ -12,21 +12,29 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.vision.barcode.Barcode;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
+    public static final String ORIGIN_KEY_LAT = "ORIGIN1";
+    public static final String ORIGIN_KEY_LNG = "ORIGIN2";
+    public static final String DEST_KEY_LAT = "DEST1";
+    public static final String DEST_KEY_LNG = "DEST2";
+
     private GoogleMap map;
-    private String address;
+    private LatLng origin, dest;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,7 +44,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
 
-        address = "52 Kersland Street, Glasgow, G12 8BT";
+        Bundle extras = getIntent().getExtras();
+        origin = new LatLng(extras.getDouble(ORIGIN_KEY_LAT), extras.getDouble(ORIGIN_KEY_LNG));
+        dest = new LatLng(extras.getDouble(DEST_KEY_LAT), extras.getDouble(DEST_KEY_LNG));
 
         mapFragment.getMapAsync(this);
     }
@@ -54,16 +64,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         map = googleMap;
 
-        // Add a marker in Sydney and move the camera
-        LatLng sydney = new LatLng(-34, 151);
-        map.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        map.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+        if (origin != null && dest != null) {
+            map.addMarker(new MarkerOptions().position(origin).title("ORIGIN"));
+            map.addMarker(new MarkerOptions().position(dest).title("DESTINATION"));
 
-        LatLng latlng = getLocationFromAddress(address);
-
-        map.addMarker(new MarkerOptions().position(latlng).title(address));
+            map.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder()
+                            .target(dest)
+                            .zoom(13f)
+                            .build()
+            ));
+        }
     }
 
+    /**
+     * Converts the address string provided by Google Calendar to latitude & longitude coordinates.
+     */
     public LatLng getLocationFromAddress(String strAddress) {
         Geocoder coder = new Geocoder(this);
         List<Address> address;
