@@ -30,6 +30,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.text.method.ScrollingMovementMethod;
+import android.util.Log;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -37,6 +38,7 @@ import android.widget.TextView;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 public class MainActivity extends Activity {
@@ -263,14 +265,29 @@ public class MainActivity extends Activity {
         private List<String> getDataFromApi() throws IOException {
             // List the next 10 events from the primary calendar.
             DateTime now = new DateTime(System.currentTimeMillis());
+
+            Date startLunchTime = new Date();
+            startLunchTime.setHours(10); startLunchTime.setMinutes(0); startLunchTime.setSeconds(0);
+            DateTime startLunchTime1 = new DateTime(startLunchTime);
+            DateTime minTime;
+            if (now.toString().compareTo(startLunchTime1.toString()) >0 ){
+                minTime = now;
+            } else{
+                minTime = startLunchTime1;
+            }
+
             List<String> eventStrings = new ArrayList<String>();
+
             Events events = mService.events().list("primary")
                     .setMaxResults(10)
-                    .setTimeMin(now)
+                    .setTimeMin(minTime)
                     .setOrderBy("startTime")
                     .setSingleEvents(true)
                     .execute();
             List<Event> items = events.getItems();
+            Log.d("YourTag", now.toString());
+            Log.d("AAAAAAAAAA", startLunchTime.toString());
+            Log.d("BBBBBBBBBB", startLunchTime1 .toString());
 
 
             for( int i = 0; i < items.size()-1; i++){
