@@ -272,16 +272,33 @@ public class MainActivity extends Activity {
                     .execute();
             List<Event> items = events.getItems();
 
-            for (Event event : items) {
-                DateTime start = event.getStart().getDateTime();
-                if (start == null) {
-                    // All-day events don't have start times, so just use
-                    // the start date.
-                    start = event.getStart().getDate();
+
+            for( int i = 0; i < items.size()-1; i++){
+                if ( items.get(i).getEnd().getDateTime() == null ){
+                    continue;
                 }
+                else if ( items.get(i+1).getStart().getDateTime() == null ){
+                    continue;
+                }
+                long start1 = items.get(i).getEnd().getDateTime().getValue();
+                long start2 = items.get(i+1).getStart().getDateTime().getValue();
+                long difference = (start2 - start1) /60000;
+                String location = items.get(i).getLocation();
                 eventStrings.add(
-                        String.format("%s (%s)", event.getSummary(), start));
-            }
+                                String.format("%s\n %s\n %s\n FREE TIME (%d) min at (%s)\n", items.get(i).getSummary(),items.get(i+1).getSummary(), location, difference, items.get(i).getEnd().getDateTime()));
+        }
+//            for (Event event : items) {
+//                DateTime start = event.getStart().getDateTime();
+//                DateTime end = event.getEnd().getDateTime();
+//                String location = event.getLocation();
+//                if (start == null) {
+//                    // All-day events don't have start times, so just use
+//                    // the start date.
+//                    start = event.getStart().getDate();
+//                }
+//                eventStrings.add(
+//                        String.format("%s\n START (%s)\n END (%s)\n LOCATION (%s)\n \n", event.getSummary(), start, end, location));
+//            }
             return eventStrings;
         }
 
