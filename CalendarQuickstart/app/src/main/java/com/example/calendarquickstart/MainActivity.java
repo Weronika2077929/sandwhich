@@ -31,6 +31,7 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -40,6 +41,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 public class MainActivity extends Activity {
     GoogleAccountCredential mCredential;
@@ -50,7 +52,7 @@ public class MainActivity extends Activity {
     static final int REQUEST_AUTHORIZATION = 1001;
     static final int REQUEST_GOOGLE_PLAY_SERVICES = 1002;
     private static final String PREF_ACCOUNT_NAME = "accountName";
-    private static final String[] SCOPES = { CalendarScopes.CALENDAR_READONLY };
+    private static final String[] SCOPES = { CalendarScopes.CALENDAR };
 
     /**
      * Create the main activity.
@@ -290,9 +292,6 @@ public class MainActivity extends Activity {
                     .setSingleEvents(true)
                     .execute();
             List<Event> items = events.getItems();
-            Log.d("YourTag", now.toString());
-            Log.d("AAAAAAAAAA", startLunchTime.toString());
-            Log.d("BBBBBBBBBB", startLunchTime1 .toString());
 
 
             for( int i = 0; i < items.size()-1; i++){
@@ -309,20 +308,29 @@ public class MainActivity extends Activity {
                 eventStrings.add(
                                 String.format("%s\n %s\n %s\n FREE TIME (%d) min at (%s)\n", items.get(i).getSummary(),items.get(i+1).getSummary(), location, difference, items.get(i).getEnd().getDateTime()));
         }
-//            for (Event event : items) {
-//                DateTime start = event.getStart().getDateTime();
-//                DateTime end = event.getEnd().getDateTime();
-//                String location = event.getLocation();
-//                if (start == null) {
-//                    // All-day events don't have start times, so just use
-//                    // the start date.
-//                    start = event.getStart().getDate();
-//                }
-//                eventStrings.add(
-//                        String.format("%s\n START (%s)\n END (%s)\n LOCATION (%s)\n \n", event.getSummary(), start, end, location));
-//            }
+
+            Event event = new Event()
+                    .setSummary("Google I/O 2015")
+                    .setLocation("800 Howard St., San Francisco, CA 94103");
+
+            DateTime startDateTime = new DateTime("2015-11-01T09:00:00-07:00");
+            EventDateTime start = new EventDateTime()
+                    .setDateTime(startDateTime);
+            event.setStart(start);
+
+            DateTime endDateTime = new DateTime("2015-11-01T17:00:00-07:00");
+            EventDateTime end = new EventDateTime()
+                    .setDateTime(endDateTime);
+            event.setEnd(end);
+            
+            String calendarId = "primary";
+            event = mService.events().insert(calendarId, event).execute();
+            System.out.printf("Event created: %s\n", event.getHtmlLink());
+
             return eventStrings;
+
         }
+
 
 
         @Override
